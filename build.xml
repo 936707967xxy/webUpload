@@ -1,0 +1,193 @@
+<!-- 对于ant如有疑问，可参见ant使用说明 -->
+<project name="hoomsun-webUpload" default="post-clean" basedir=".">
+	<!--
+====================================================================== 
+	project		    :	froad-agre-manager
+	description	:	信e付管理平台后端
+======================================================================
+-->
+
+	<tstamp>
+		<!-- 该参数用来将war包生成到指定日期目录 -->
+		<format property="TODAY" pattern="yyyy-MM-dd" />
+	</tstamp>
+
+	<property name="target" value="1.6" />
+	<property name="source" value="1.6" />
+	<property name="version" value="0.0.1-SNAPSHOT" />
+	<property name="vendor" value="com" />
+	<property name="author" value="com" />
+	<property name="project" value="webUpload" />
+
+	<!-- 默认当前目录为.即build.xml所在目录，所有其它目录都基于此 -->
+	<property name="project.home" value="." />
+
+	<!-- Java源文件路径，该目录下存放Java源文件 -->
+	<property name="src.home" value="${project.home}/src/main/java" />
+
+	<!-- Java资源文件路径，该目录下存放Java资源文件（xml,properties等） -->
+	<property name="resource.home" value="${project.home}/src/main/resources" />
+
+	<!-- WebRoot路径，该路径应该是源码目录中WEB-INF目录的父目录，该目录主要存放js/jsp/html等文件 -->
+	<property name="web.home" value="${project.home}/src/main/webapp" />
+
+	<!-- 包路径 -->
+	<property name="lib.home" value="${web.home}/WEB-INF/lib" />
+
+	<!-- 生成的war包名称 -->
+	<property name="war.name" value="froad-agre-manager.war" />
+
+	<!-- 生成的war包存放的目录，为了保存历史版本，该部署目录不应被清除 -->
+	<property name="deploy.home" value="${project.home}/../Build/${TODAY}" />
+
+	<!-- 编译生成的class文件存放位置 -->
+	<property name="classes.home" value="${project.home}/target/classes" />
+
+	<!-- 编译临时目录，在该临时目录中将编译生成的class文件、src目录中的资源文件以及WebRoot下面的文件合并后，统一打包成war包 -->
+	<property name="build.home" value="${project.home}/target/build" />
+
+	<!-- ******************************************************************************************************* -->
+	<!-- 首先打包项目需要依赖的common工程，以下的common工程配置 -->
+	<property name="common-project" value="froad-agre-common" />
+	<property name="common-version" value="0.0.1-SNAPSHOT" />
+	<property name="common.home" value="../froad-agre-common" />
+	<property name="common.src.home" location="${common.home}/src/main/java" />
+	<property name="common.resource.home" location="${common.home}/src/main/resources" />
+	<property name="common.dist.home" location="${common.home}/dist" />
+	<property name="common.lib.home" location="${common.home}/lib" />
+
+	<path id="common-classpath">
+		<fileset dir="${common.lib.home}" includes="**/*.jar" />
+	</path>
+
+	<target name="common-init">
+		<delete dir="${common.dist.home}/classes" />
+		<mkdir dir="${common.dist.home}/classes" />
+		<copy includeemptydirs="false" todir="${common.dist.home}/classes">
+			<fileset dir="${common.src.home}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- common工程执行编译 -->
+	<target name="common-build-project" depends="common-init">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac srcdir="${common.src.home}" destdir="${common.dist.home}/classes" debug="${debuglevel}" encoding="utf-8" includes="**/*.java" source="${source}" target="${target}">
+			<compilerarg line="-Xlint:unchecked " />
+			<compilerarg line="-Xlint:deprecation" />
+			<classpath refid="common-classpath" />
+		</javac>
+	</target>
+
+	<!-- common工程执行打包jar -->
+	<target name="common-package" depends="common-build-project">
+		<manifest file="MANIFEST.MF">
+			<attribute name="Created-By" value="${author}" />
+			<attribute name="Built-Date" value="${TODAY}" />
+			<attribute name="Implementation-Title" value="${common-project}" />
+			<attribute name="Implementation-Version" value="${version}" />
+			<attribute name="Implementation-Vendor" value="${vendor}" />
+		</manifest>
+		<!-- 打包所有的编译文件 -->
+		<!-- 
+		<jar jarfile="${common.dist.home}/${common-project}.jar" basedir="${common.dist.home}/classes" manifest="MANIFEST.MF">
+		</jar>
+		-->
+		<jar jarfile="${lib.home}/${common-project}.jar" basedir="${common.dist.home}/classes" manifest="MANIFEST.MF">
+		
+		</jar>
+		<delete dir="${common.dist.home}/classes" />
+		<delete file="${common.home}/MANIFEST.MF" />
+		<echo message="common工程生成：${common.dist.home}/lib/${common-project}.jar" />
+	</target>
+	<!-- common工程打包完成 -->
+	<!-- ******************************************************************************************************* -->
+
+	<!--
+		编译原则：
+		1. 不允许将编译过程中输出的中间文件拷贝到配置库源码目录（例如src.home和web.home等目录及其子目录），
+		   即编译生成的中间文件必须拷贝至临时目录，即classes.home和build.home位置必须处于临时目录；
+		2. 调用javac步骤时不允许指定failonerror为false，否则会导致编译失败时生成部分编译结果的包；
+		3. 编译之前之后都必须清除所有临时目录。
+	-->
+
+	<!-- 第1步：编译之前清除临时目录，防止编译到一半失败或者异常终止导致文件残余且影响下次编译结果 -->
+	<target name="pre-clean" depends="common-package">
+		<delete dir="${classes.home}" />
+		<delete dir="${build.home}" />
+	</target>
+
+	<!-- 第2步：准备工作，建立各种临时目录和生成包目录，依赖关系表明执行该步骤时，必须先执行所有依赖的步骤 -->
+	<target name="prepare" depends="pre-clean">
+		<mkdir dir="${classes.home}" />
+		<mkdir dir="${build.home}" />
+		<mkdir dir="${deploy.home}" />
+		<mkdir dir="${build.home}/WEB-INF" />
+		<mkdir dir="${build.home}/WEB-INF/classes" />
+		<mkdir dir="${build.home}/WEB-INF/lib" />
+		<copy todir="${build.home}/WEB-INF/lib">
+			<fileset dir="${common.dist.home}">
+				<include name="*.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- 编译工程所需的库路径 -->
+	<path id="compile.classpath">
+		<!-- 输出classes目录作为首选依赖目录 -->
+		<pathelement location="${classes.home}" />
+		<!-- WEB-INF/lib下面的所有包作为依赖包 -->
+		<fileset dir="${lib.home}">
+			<include name="*.jar" />
+			<include name="*.zip" />
+		</fileset>
+	</path>
+
+	<!-- 第3步：执行编译 -->
+	<target name="compile" depends="prepare">
+		<!-- 不允许指定failonerror为false，encoding通常为UTF-8，debug为on表示编译生成的类包含调试信息，通常debug为on -->
+		<javac srcdir="${src.home}" destdir="${classes.home}" includeantruntime="true" debug="on" encoding="UTF-8" source="${source}" target="${target}">
+			<!-- 依赖的库，可以有多个元素，例如如需额外依赖j2ee包，则可增加一个classpath元素 -->
+			<compilerarg line="-Xlint:unchecked " />
+			<compilerarg line="-Xlint:deprecation" />
+			<classpath refid="compile.classpath" />
+		</javac>
+	</target>
+
+	<!-- 第4步：打包 -->
+	<target name="build" depends="compile">
+		<!-- 1) 将WebRoot路径下所有的内容合成至临时目录 -->
+		<copy todir="${build.home}">
+			<fileset dir="${web.home}" />
+		</copy>
+
+		<!-- 2) 将编译生成的classes合成至临时目录 -->
+		<copy todir="${build.home}/WEB-INF/classes">
+			<fileset dir="${classes.home}" />
+		</copy>
+
+		<!-- 3) 将源码目录中的资源文件合成至临时目录 -->
+		<copy todir="${build.home}/WEB-INF/classes">
+			<fileset dir="${resource.home}" />
+		</copy>
+
+		<manifest file="${build.home}/WEB-INF/MANIFEST.MF">
+			<attribute name="Created-By" value="${author}" />
+			<attribute name="Built-Date" value="${TODAY}" />
+			<attribute name="Implementation-Title" value="${project}" />
+			<attribute name="Implementation-Version" value="${version}" />
+			<attribute name="Implementation-Vendor" value="${vendor}" />
+		</manifest>
+
+		<!-- 4) 将临时目录打成war包，输出至部署目录，为了保存历史版本，该部署目录不应被清除 -->
+		<jar jarfile="${deploy.home}/${war.name}" basedir="${build.home}" manifest="${build.home}/WEB-INF/MANIFEST.MF" />
+	</target>
+
+	<!-- 第5步：编译后清除临时目录，按照依赖顺序，先编译再清除 -->
+	<target name="post-clean" depends="build">
+		<delete dir="${classes.home}" />
+		<delete dir="${build.home}" />
+		<delete file="${project.home}/MANIFEST.MF" />
+	</target>
+</project>

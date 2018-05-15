@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>$curChannel.site.name</title>
+<link href="/pub/$curChannel.site.path/css/base.css" type="text/css"
+	rel="stylesheet" />
+<link href="/pub/$curChannel.site.path/css/style.css" type="text/css"
+	rel="stylesheet" />
+</head>
+<body>
+	#parse("header.vm")
+	<div class="subPage">
+		<div class="Bread">您目前的位置：#articleNav()</div>
+		<div class="pageArticle">
+			<div class="articleTitle">
+				<h2>$curArticle.name</h2>
+				#if($curArticle.viceTitle!="")
+				<h3>$!{curArticle.viceTitle}</h3>
+				#end
+			</div>
+			<div class="articleAuthor">
+				#if($curArticle.author!="")作者：$!{curArticle.author}&nbsp;&nbsp;#end
+				#if($curArticle.source!="") 来源：$!{curArticle.source}&nbsp;&nbsp;
+				#end 发布日期：$cms.format($curArticle.publishDate)</div>
+			<div class="article">$!{curArticle.content}</div>
+			#if ($cmsService.getArticleAttachmentCount($curArticle.ID, 3)>0)
+			<div class="Annex">
+				<h3>相关附件</h3>
+				<ul>
+					#foreach($doc in $cms.getAttachments($curArticle))
+					<li><a href="$cms.getUrl($doc)" target="_blank">$doc.name</a></li>
+					#end
+				</ul>
+			</div>
+			#end #if ($cms.getRelatesByKeyword($curArticle,0,5).size()>0)
+			<div class="Annex">
+				<h3>相关文章</h3>
+				<ul>
+					#foreach($article in $cms.getRelatesByKeyword($curArticle,0,5))
+					<li><a href="$cms.getUrl($article)" target="_blank">$article.name</a></li>
+					#end
+				</ul>
+			</div>
+			#end
+		</div>
+	</div>
+	<div class="friendLink">
+		<div class="friendLink_title">
+			<h2>相关链接</h2>
+		</div>
+		<div class="linkList">
+			<ul>
+				#foreach($article in $cms.getContents("相关链接",5))
+				<li><a href="$cms.getUrl($article)">#summary($article.name
+						10)</a></li>#end
+			</ul>
+		</div>
+	</div>
+	#parse("footer.vm")
+	<script type="text/javascript"
+		src="/pub/$curChannel.site.path/js/jquery-1.9.0.min.js"></script>
+	<script type="text/javascript"
+		src="/pub/$curChannel.site.path/js/jquery.flexslider-min.js"></script>
+	<script type="text/javascript"
+		src="/pub/$curChannel.site.path/js/script.js"></script>
+	<script type="text/javascript">
+		Nav('#nav');
+		$(function() {
+			$(".flexslider").flexslider({
+				pauseOnHover : true,
+				slideshowSpeed : 4000,
+				animationSpeed : 400,
+				touch : true
+			});
+		});
+	</script>
+</body>
+</html>

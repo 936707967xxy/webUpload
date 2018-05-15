@@ -1,0 +1,14 @@
+一、分批上传，断点续传功能依赖包
+commons-fileupload-1.3.2.jar
+commons-io-2.5.jar
+
+
+二、web页面ppt文档在线展示功能依赖包
+解决办法一：
+把ppt转换成pdf文件之后，再显示在web页面
+
+
+word,ppt,image,excel转换pdf文件依赖包如下列表：
+1、iText-2.1.7.jar
+2、iTextAsian.jar
+3、jacob.jar

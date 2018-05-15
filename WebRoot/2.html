@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>图片轮播代码</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0">
+</head>
+<style type="text/css">
+    #flexslider ul li{width:100%;list-style: none;width: 480px;height: 240px;text-align: center;}
+    #flexslider ul li:not(:first-child){display: none;}
+</style>
+
+<body>
+<div id="flexslider">
+    <ul>
+        <li><img src="http://zgjyyfxyjjd.swupl.edu.cn/images/mode_picture1.jpg" style="width: 480px;height: 240px;"/></li>
+        <li><img src="http://www.swupl.edu.cn/images/sub01.jpg" style="width: 480px;height: 240px;"/></li>
+    </ul>
+</div>
+<script type="text/javascript">
+    //因为使用了document，所以js需要放在需要执行的代码下面生效才能生效
+    var li=document.getElementById('flexslider').getElementsByTagName("li");
+    var num=0;
+    var len=li.length;
+
+    setInterval(function(){
+        li[num].style.display="none";
+        num=++num==len?0:num;
+        li[num].style.display="inline-block";
+
+    },3000);//切换时间
+</script>
+</body>
+</html>
